@@ -1,6 +1,5 @@
 const std = @import("std");
-const DefParser = @import("def_parser.zig").DefParser;
-const CoffGenerator = @import("coff_generator.zig").CoffGenerator;
+const def2lib = @import("def2lib.zig");
 const print = std.debug.print;
 
 pub fn main() !void {
@@ -70,28 +69,33 @@ pub fn main() !void {
     print("Converting {s} to {s}...\n", .{ input_file, output_file });
     if (kill_at) print("Symbol decoration removal enabled (--kill-at)\n", .{});
 
-    // Read and parse the DEF file
+    // Read the DEF file
     const def_content = std.fs.cwd().readFileAlloc(allocator, input_file, 1024 * 1024) catch |err| {
         print("Error reading file {s}: {}\n", .{ input_file, err });
         return;
     };
     defer allocator.free(def_content);
 
-    var def_parser = DefParser.init(allocator);
-    defer def_parser.deinit();
-
-    var module_def = def_parser.parse(def_content) catch |err| {
-        print("Error parsing DEF file: {}\n", .{err});
+    // Convert DEF to LIB using the library
+    const options = def2lib.ConversionOptions{
+        .kill_at = kill_at,
+    };
+    
+    const lib_content = def2lib.convertDefToLib(allocator, def_content, options) catch |err| {
+        print("Error converting DEF to LIB: {}\n", .{err});
         return;
     };
-    defer module_def.deinit(allocator);
+    defer allocator.free(lib_content);
 
-    // Generate COFF library file
-    var coff_generator = CoffGenerator.init(allocator);
-    defer coff_generator.deinit();
-
-    coff_generator.generate(module_def, output_file, kill_at) catch |err| {
-        print("Error generating COFF library: {}\n", .{err});
+    // Write the output file
+    const file = std.fs.cwd().createFile(output_file, .{}) catch |err| {
+        print("Error creating output file {s}: {}\n", .{ output_file, err });
+        return;
+    };
+    defer file.close();
+    
+    file.writeAll(lib_content) catch |err| {
+        print("Error writing output file: {}\n", .{err});
         return;
     };
 

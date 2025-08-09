@@ -135,11 +135,22 @@ pub const CoffGenerator = struct {
     }
 
     pub fn generate(self: *CoffGenerator, module_def: ModuleDefinition, output_path: []const u8, kill_at: bool) !void {
+        const lib_content = try self.generateInMemory(module_def, kill_at);
+        defer self.allocator.free(lib_content);
+        
+        // Write the output file
+        const file = try std.fs.cwd().createFile(output_path, .{});
+        defer file.close();
+        
+        try file.writeAll(lib_content);
+    }
+
+    pub fn generateInMemory(self: *CoffGenerator, module_def: ModuleDefinition, kill_at: bool) ![]u8 {
         // Create a proper Microsoft import library
         // This creates individual COFF object files for each import
 
         var lib_content = std.ArrayList(u8).init(self.allocator);
-        defer lib_content.deinit();
+        errdefer lib_content.deinit();
 
         // Write archive signature
         try lib_content.appendSlice(ARCHIVE_SIGNATURE);
@@ -153,11 +164,7 @@ pub const CoffGenerator = struct {
             }
         }
 
-        // Write the output file
-        const file = try std.fs.cwd().createFile(output_path, .{});
-        defer file.close();
-
-        try file.writeAll(lib_content.items);
+        return try lib_content.toOwnedSlice();
     }
 
     fn writeSimpleImportMember(self: *CoffGenerator, content: *std.ArrayList(u8), exp: Export, module_name: ?[]const u8, kill_at: bool) !void {
