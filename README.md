@@ -150,7 +150,26 @@ Contributions are welcome! Please see the development guidelines in `.github/cop
 1. Clone the repository
 2. Install Zig 0.14.x or later
 3. Build: `zig build`
-4. Test: `zig build test` (when available)
+4. Test: `zig build test-all`
+
+### Testing
+
+The project includes comprehensive testing:
+
+```bash
+# Run all test suites
+zig build test-all
+
+# Run specific test suites
+zig build test               # Unit tests
+zig build test-comprehensive # Comprehensive functionality tests
+zig build test-integration  # Integration tests with real DEF files
+zig build test-performance  # Performance benchmarks
+
+# Test library validation with zig cc
+zig cc test/validation_test.c -o validation_test.exe
+./validation_test.exe
+```
 
 ### Code Style
 - Follow Zig naming conventions (snake_case for functions, PascalCase for types)

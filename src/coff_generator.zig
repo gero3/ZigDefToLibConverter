@@ -3,6 +3,7 @@ const DefParser = @import("def_parser.zig");
 const ModuleDefinition = DefParser.ModuleDefinition;
 const Export = DefParser.Export;
 const ExportType = DefParser.ExportType;
+const def2lib = @import("def2lib.zig");
 
 const ARCHIVE_SIGNATURE = "!<arch>\n";
 
@@ -17,6 +18,11 @@ const IMAGE_SYM_TYPE_NULL = 0;
 // Import Object Header constants
 const IMPORT_OBJECT_HDR_SIG2: u16 = 0xffff;
 
+// Type encoding constants
+const IMPORT_TYPE_MASK: u8 = 0x3;
+const NAME_TYPE_MASK: u8 = 0x7;
+const NAME_TYPE_SHIFT: u8 = 2;
+
 // Import Object Types
 const IMPORT_OBJECT_CODE: u16 = 0;
 const IMPORT_OBJECT_DATA: u16 = 1;
@@ -27,6 +33,14 @@ const IMPORT_NAME_ORDINAL: u16 = 0;
 const IMPORT_NAME_NAME: u16 = 1;
 const IMPORT_NAME_NAME_NO_PREFIX: u16 = 2;
 const IMPORT_NAME_NAME_UNDECORATE: u16 = 3;
+
+// Convert MachineType enum to COFF machine constant
+fn machineTypeToConstant(machine_type: def2lib.MachineType) u16 {
+    return switch (machine_type) {
+        .i386 => IMAGE_FILE_MACHINE_I386,
+        .amd64 => IMAGE_FILE_MACHINE_AMD64,
+    };
+}
 
 // COFF structures for real import objects
 const ImportObjectHeader = packed struct {
@@ -48,7 +62,7 @@ const ImportObjectHeader = packed struct {
             .time_date_stamp = @intCast(std.time.timestamp()),
             .size_of_data = data_size,
             .ordinal_hint = ordinal,
-            .type_name_type = (import_type & 0x3) | ((name_type & 0x7) << 2),
+            .type_name_type = (import_type & IMPORT_TYPE_MASK) | ((name_type & NAME_TYPE_MASK) << NAME_TYPE_SHIFT),
         };
     }
 };
@@ -145,7 +159,7 @@ pub const CoffGenerator = struct {
         try file.writeAll(lib_content);
     }
 
-    pub fn generateInMemory(self: *CoffGenerator, module_def: ModuleDefinition, kill_at: bool) ![]u8 {
+    pub fn generateInMemory(self: *CoffGenerator, module_def: ModuleDefinition, kill_at: bool, machine_type: def2lib.MachineType) ![]u8 {
         // Create a proper Microsoft import library
         // This creates individual COFF object files for each import
 
@@ -160,14 +174,14 @@ pub const CoffGenerator = struct {
 
         for (module_def.exports.items) |exp| {
             if (!exp.is_private) {
-                try self.writeSimpleImportMember(&lib_content, exp, module_def.name, kill_at);
+                try self.writeSimpleImportMember(&lib_content, exp, module_def.name, kill_at, machine_type);
             }
         }
 
         return try lib_content.toOwnedSlice();
     }
 
-    fn writeSimpleImportMember(self: *CoffGenerator, content: *std.ArrayList(u8), exp: Export, module_name: ?[]const u8, kill_at: bool) !void {
+    fn writeSimpleImportMember(self: *CoffGenerator, content: *std.ArrayList(u8), exp: Export, module_name: ?[]const u8, kill_at: bool, machine_type: def2lib.MachineType) !void {
         // Process symbol name based on kill_at flag (like LLVM code)
         var processed_name = exp.name;
         var symbol_name = exp.name;
@@ -202,10 +216,10 @@ pub const CoffGenerator = struct {
         }
 
         // Generate real COFF import object
-        try self.writeImportObject(content, processed_name, symbol_name, module_name, exp);
+        try self.writeImportObject(content, processed_name, symbol_name, module_name, exp, machine_type);
     }
 
-    fn writeImportObject(self: *CoffGenerator, content: *std.ArrayList(u8), import_name: []const u8, symbol_name: []const u8, module_name: ?[]const u8, exp: Export) !void {
+    fn writeImportObject(self: *CoffGenerator, content: *std.ArrayList(u8), import_name: []const u8, symbol_name: []const u8, module_name: ?[]const u8, exp: Export, machine_type: def2lib.MachineType) !void {
         // Create the import object data
         var import_data = std.ArrayList(u8).init(self.allocator);
         defer import_data.deinit();
@@ -232,8 +246,7 @@ pub const CoffGenerator = struct {
         };
 
         // Create import object header
-        const header = ImportObjectHeader.init(IMAGE_FILE_MACHINE_AMD64, // Target AMD64 for now
-            @intCast(import_data.items.len), @intCast(exp.ordinal orelse 0), import_type, name_type);
+        const header = ImportObjectHeader.init(machineTypeToConstant(machine_type), @intCast(import_data.items.len), @intCast(exp.ordinal orelse 0), import_type, name_type);
 
         // Calculate total member size (header + data)
         const member_size = @sizeOf(ImportObjectHeader) + import_data.items.len;

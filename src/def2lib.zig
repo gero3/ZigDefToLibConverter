@@ -5,22 +5,24 @@ const CoffGenerator = @import("coff_generator.zig").CoffGenerator;
 pub const ModuleDefinition = @import("def_parser.zig").ModuleDefinition;
 pub const Export = @import("def_parser.zig").Export;
 pub const ExportType = @import("def_parser.zig").ExportType;
+pub const ParseError = @import("def_parser.zig").ParseError;
+pub const ParseErrorInfo = @import("def_parser.zig").ParseErrorInfo;
+
+pub const MachineType = enum {
+    i386,
+    amd64,
+};
 
 pub const ConversionOptions = struct {
     kill_at: bool = false,
     machine_type: MachineType = .amd64,
-
-    pub const MachineType = enum {
-        i386,
-        amd64,
-    };
 };
 
 pub const ConversionError = error{
     ParseError,
     GenerationError,
     OutOfMemory,
-};
+} || ParseError;
 
 /// Convert DEF file content to LIB file content in memory
 /// Returns owned slice that must be freed by caller
@@ -33,17 +35,17 @@ pub fn convertDefToLib(
     var def_parser = DefParser.init(allocator);
     defer def_parser.deinit();
 
-    const module_def = def_parser.parse(def_content) catch {
-        return ConversionError.ParseError;
+    var module_def = def_parser.parse(def_content) catch |err| {
+        // Propagate specific parse errors
+        return err;
     };
-    var module_def_copy = module_def;
-    defer module_def_copy.deinit(allocator);
+    defer module_def.deinit(allocator);
 
     // Generate the COFF library content
     var coff_generator = CoffGenerator.init(allocator);
     defer coff_generator.deinit();
 
-    const lib_content = coff_generator.generateInMemory(module_def_copy, options.kill_at) catch {
+    const lib_content = coff_generator.generateInMemory(module_def, options.kill_at, options.machine_type) catch {
         return ConversionError.GenerationError;
     };
 
@@ -52,6 +54,7 @@ pub fn convertDefToLib(
 
 /// Parse DEF content and return module definition
 /// Caller owns the returned ModuleDefinition and must call deinit()
+/// Use getLastParseError() to get detailed error information on failure
 pub fn parseDefContent(
     allocator: std.mem.Allocator,
     def_content: []const u8,
@@ -59,10 +62,23 @@ pub fn parseDefContent(
     var def_parser = DefParser.init(allocator);
     defer def_parser.deinit();
 
-    return def_parser.parse(def_content) catch |err| switch (err) {
-        error.OutOfMemory => return ConversionError.OutOfMemory,
-        else => return ConversionError.ParseError,
+    return def_parser.parse(def_content) catch |err| {
+        // Propagate specific parse errors
+        return err;
     };
+}
+
+/// Get detailed information about the last parse error
+/// Returns null if no error occurred or if the parser was reused
+pub fn getLastParseError(
+    allocator: std.mem.Allocator,
+    def_content: []const u8,
+) ?ParseErrorInfo {
+    var def_parser = DefParser.init(allocator);
+    defer def_parser.deinit();
+
+    _ = def_parser.parse(def_content) catch {};
+    return def_parser.getLastError();
 }
 
 /// Generate COFF library content from module definition
@@ -75,7 +91,7 @@ pub fn generateLibContent(
     var coff_generator = CoffGenerator.init(allocator);
     defer coff_generator.deinit();
 
-    return coff_generator.generateInMemory(module_def, options.kill_at) catch |err| switch (err) {
+    return coff_generator.generateInMemory(module_def, options.kill_at, options.machine_type) catch |err| switch (err) {
         error.OutOfMemory => return ConversionError.OutOfMemory,
         else => return ConversionError.GenerationError,
     };

@@ -98,7 +98,48 @@ pub fn build(b: *std.Build) void {
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
+    // Comprehensive test suites
+    const comprehensive_tests = b.addTest(.{
+        .root_source_file = b.path("src/comprehensive_tests.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const run_comprehensive_tests = b.addRunArtifact(comprehensive_tests);
+
+    const integration_tests = b.addTest(.{
+        .root_source_file = b.path("src/integration_tests.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const run_integration_tests = b.addRunArtifact(integration_tests);
+
+    const performance_tests = b.addTest(.{
+        .root_source_file = b.path("src/performance_tests.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const run_performance_tests = b.addRunArtifact(performance_tests);
+
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
+
+    const comprehensive_test_step = b.step("test-comprehensive", "Run comprehensive tests");
+    comprehensive_test_step.dependOn(&run_comprehensive_tests.step);
+
+    const integration_test_step = b.step("test-integration", "Run integration tests");
+    integration_test_step.dependOn(&run_integration_tests.step);
+
+    const performance_test_step = b.step("test-performance", "Run performance tests");
+    performance_test_step.dependOn(&run_performance_tests.step);
+
+    const all_tests_step = b.step("test-all", "Run all test suites");
+    all_tests_step.dependOn(&run_lib_unit_tests.step);
+    all_tests_step.dependOn(&run_exe_unit_tests.step);
+    all_tests_step.dependOn(&run_comprehensive_tests.step);
+    all_tests_step.dependOn(&run_integration_tests.step);
+    all_tests_step.dependOn(&run_performance_tests.step);
 }

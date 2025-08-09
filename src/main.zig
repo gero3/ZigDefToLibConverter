@@ -83,6 +83,18 @@ pub fn main() !void {
 
     const lib_content = def2lib.convertDefToLib(allocator, def_content, options) catch |err| {
         print("Error converting DEF to LIB: {}\n", .{err});
+
+        // If it's a parse error, try to get detailed error information
+        switch (err) {
+            def2lib.ParseError.InvalidSyntax, def2lib.ParseError.MissingName, def2lib.ParseError.InvalidOrdinal, def2lib.ParseError.EmptyExportName, def2lib.ParseError.MalformedDescription, def2lib.ParseError.MalformedVersion, def2lib.ParseError.UnknownSection, def2lib.ParseError.DuplicateSection => {
+                if (def2lib.getLastParseError(allocator, def_content)) |error_info| {
+                    print("Parse error details:\n", .{});
+                    print("  Line {}: {s}\n", .{ error_info.line_number, error_info.line_content });
+                    print("  Error: {s}\n", .{error_info.message});
+                }
+            },
+            else => {},
+        }
         return;
     };
     defer allocator.free(lib_content);

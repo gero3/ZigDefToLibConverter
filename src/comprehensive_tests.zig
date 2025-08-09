@@ -277,11 +277,9 @@ test "error handling - invalid def content" {
     const invalid_content = "This is not a valid DEF file content at all!";
     const options = def2lib.ConversionOptions{};
 
-    // Should still work but create empty library
-    const lib_content = try def2lib.convertDefToLib(allocator, invalid_content, options);
-    defer allocator.free(lib_content);
-
-    try validateArchiveStructure(lib_content);
+    // Should now properly fail with parse error
+    const result = def2lib.convertDefToLib(allocator, invalid_content, options);
+    try testing.expectError(def2lib.ParseError.UnknownSection, result);
 }
 
 test "comments and whitespace handling" {

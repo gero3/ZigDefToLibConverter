@@ -68,6 +68,8 @@ export fn def2lib_convert(
             def2lib.ConversionError.ParseError => DEF2LIB_ERROR_PARSE_FAILED,
             def2lib.ConversionError.GenerationError => DEF2LIB_ERROR_GENERATION_FAILED,
             def2lib.ConversionError.OutOfMemory => DEF2LIB_ERROR_OUT_OF_MEMORY,
+            // Specific parse errors
+            def2lib.ParseError.InvalidSyntax, def2lib.ParseError.MissingName, def2lib.ParseError.InvalidOrdinal, def2lib.ParseError.EmptyExportName, def2lib.ParseError.MalformedDescription, def2lib.ParseError.MalformedVersion, def2lib.ParseError.UnknownSection, def2lib.ParseError.DuplicateSection => DEF2LIB_ERROR_PARSE_FAILED,
         };
         return result.error_code;
     };
