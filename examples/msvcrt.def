@@ -1,0 +1,98 @@
+NAME msvcrt
+DESCRIPTION "Microsoft Visual C Runtime Library"
+
+EXPORTS
+    ; Memory functions
+    malloc
+    calloc
+    realloc
+    free
+    _aligned_malloc
+    _aligned_free
+    
+    ; String functions
+    strlen
+    strcpy
+    strncpy
+    strcmp
+    strncmp
+    strcat
+    strncat
+    strchr
+    strrchr
+    strstr
+    sprintf
+    snprintf
+    sscanf
+    
+    ; Wide string functions  
+    wcslen
+    wcscpy
+    wcsncpy
+    wcscmp
+    wcsncmp
+    wcscat
+    wcsncat
+    wcschr
+    wcsrchr
+    wcsstr
+    swprintf
+    swscanf
+    
+    ; File I/O
+    fopen
+    fclose
+    fread
+    fwrite
+    fseek
+    ftell
+    fflush
+    ferror
+    feof
+    
+    ; Console I/O
+    printf
+    fprintf
+    puts
+    putchar
+    getchar
+    gets
+    fgets
+    
+    ; Math functions
+    sin
+    cos
+    tan
+    asin
+    acos
+    atan
+    atan2
+    sqrt
+    pow
+    exp
+    log
+    log10
+    floor
+    ceil
+    fabs
+    
+    ; Process control
+    exit
+    abort
+    atexit
+    system
+    
+    ; Environment
+    getenv
+    putenv
+    
+    ; Time functions
+    time
+    clock
+    difftime
+    mktime
+    asctime
+    ctime
+    gmtime
+    localtime
+    strftime

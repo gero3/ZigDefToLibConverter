@@ -1,0 +1,43 @@
+NAME kernel32
+DESCRIPTION "Windows Kernel32 API subset for testing"
+
+EXPORTS
+    ; Memory management functions
+    GetProcessHeap@0
+    HeapAlloc@12
+    HeapFree@12
+    HeapReAlloc@16
+    
+    ; String functions (both ANSI and Unicode)
+    lstrlenA@4
+    lstrlenW@4
+    lstrcpyA@8
+    lstrcpyW@8
+    lstrcmpA@8
+    lstrcmpW@8
+    
+    ; File operations
+    CreateFileA@28
+    CreateFileW@28
+    ReadFile@20
+    WriteFile@20
+    CloseHandle@4
+    
+    ; Process/Thread functions
+    GetCurrentProcess@0
+    GetCurrentThread@0
+    GetCurrentProcessId@0
+    GetCurrentThreadId@0
+    CreateThread@24
+    ExitThread@4
+    
+    ; System info
+    GetSystemInfo@4
+    GetTickCount@0
+    Sleep@4
+    
+    ; Error handling
+    GetLastError@0
+    SetLastError@4
+    FormatMessageA@28
+    FormatMessageW@28

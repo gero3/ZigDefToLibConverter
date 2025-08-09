@@ -1,0 +1,63 @@
+NAME sqlite3
+DESCRIPTION "SQLite3 database engine"
+
+EXPORTS
+    ; Database operations
+    sqlite3_open
+    sqlite3_open16
+    sqlite3_open_v2
+    sqlite3_close
+    sqlite3_close_v2
+    
+    ; Statement preparation and execution
+    sqlite3_prepare
+    sqlite3_prepare_v2
+    sqlite3_prepare16
+    sqlite3_prepare16_v2
+    sqlite3_step
+    sqlite3_reset
+    sqlite3_finalize
+    
+    ; Parameter binding
+    sqlite3_bind_blob
+    sqlite3_bind_double
+    sqlite3_bind_int
+    sqlite3_bind_int64
+    sqlite3_bind_null
+    sqlite3_bind_text
+    sqlite3_bind_text16
+    sqlite3_bind_value
+    sqlite3_bind_zeroblob
+    
+    ; Result column access
+    sqlite3_column_blob
+    sqlite3_column_bytes
+    sqlite3_column_bytes16
+    sqlite3_column_count
+    sqlite3_column_double
+    sqlite3_column_int
+    sqlite3_column_int64
+    sqlite3_column_text
+    sqlite3_column_text16
+    sqlite3_column_type
+    sqlite3_column_name
+    sqlite3_column_name16
+    
+    ; Error handling
+    sqlite3_errcode
+    sqlite3_errmsg
+    sqlite3_errmsg16
+    
+    ; Memory management
+    sqlite3_malloc
+    sqlite3_realloc
+    sqlite3_free
+    sqlite3_msize
+    
+    ; Utility functions
+    sqlite3_libversion
+    sqlite3_libversion_number
+    sqlite3_threadsafe
+    sqlite3_last_insert_rowid
+    sqlite3_changes
+    sqlite3_total_changes

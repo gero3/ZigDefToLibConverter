@@ -1,0 +1,24 @@
+NAME decorated_library
+DESCRIPTION "Test library with decorated function names"
+
+EXPORTS
+    ; Function with stdcall decoration (should be processed by --kill-at)
+    MyFunction@12
+    
+    ; Function with cdecl naming (should not be affected)
+    _MyFunction
+    
+    ; C++ mangled name (should not be processed by --kill-at)
+    ?MyClass@@QAE@XZ
+    
+    ; Function with internal name mapping (should use internal name)
+    PublicName = InternalFunction@8
+    
+    ; Simple function without decoration
+    SimpleFunction
+    
+    ; Data export (should not be affected by --kill-at)
+    MyGlobalData DATA
+    
+    ; Private function (should be skipped)
+    PrivateFunc@4 PRIVATE

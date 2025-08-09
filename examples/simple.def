@@ -1,0 +1,7 @@
+; Minimal .def file example
+NAME SimpleLibrary
+EXPORTS
+    Add
+    Subtract
+    Multiply
+    Divide

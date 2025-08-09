@@ -1,0 +1,48 @@
+NAME user32
+DESCRIPTION "Windows User32 API subset for testing"
+
+EXPORTS
+    ; Window management
+    CreateWindowExA@48
+    CreateWindowExW@48
+    DestroyWindow@4
+    ShowWindow@8
+    UpdateWindow@4
+    SetWindowTextA@8
+    SetWindowTextW@8
+    GetWindowTextA@12
+    GetWindowTextW@12
+    
+    ; Message handling
+    GetMessageA@16
+    GetMessageW@16
+    PeekMessageA@20
+    PeekMessageW@20
+    TranslateMessage@4
+    DispatchMessageA@4
+    DispatchMessageW@4
+    PostQuitMessage@4
+    
+    ; Device context
+    GetDC@4
+    ReleaseDC@8
+    BeginPaint@8
+    EndPaint@8
+    
+    ; Input handling
+    GetKeyState@4
+    GetAsyncKeyState@4
+    SetCapture@4
+    ReleaseCapture@0
+    
+    ; Dialog functions
+    MessageBoxA@16
+    MessageBoxW@16
+    DialogBoxParamA@20
+    DialogBoxParamW@20
+    EndDialog@8
+    
+    ; System metrics
+    GetSystemMetrics@4
+    SystemParametersInfoA@16
+    SystemParametersInfoW@16

@@ -1,0 +1,36 @@
+# Zig build artifacts
+zig-out/
+zig-cache/
+.zig-cache/
+
+# Generated library files (test outputs)
+*.lib
+*.pdb
+*.exe
+*.obj
+
+# Keep example DEF files but ignore generated libraries
+!examples/*.def
+
+# Windows specific
+Thumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db

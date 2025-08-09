@@ -1,0 +1,64 @@
+NAME opengl32
+DESCRIPTION "OpenGL 1.1 API for Windows"
+
+EXPORTS
+    ; Core OpenGL functions (no decoration - C calling convention)
+    glBegin
+    glEnd
+    glVertex3f
+    glVertex3d
+    glColor3f
+    glColor4f
+    glNormal3f
+    glTexCoord2f
+    
+    ; Matrix operations
+    glMatrixMode
+    glLoadIdentity
+    glLoadMatrixf
+    glMultMatrixf
+    glPushMatrix
+    glPopMatrix
+    glRotatef
+    glScalef
+    glTranslatef
+    
+    ; Rendering state
+    glEnable
+    glDisable
+    glCullFace
+    glFrontFace
+    glPolygonMode
+    glShadeModel
+    
+    ; Lighting
+    glLightf
+    glLightfv
+    glMaterialf
+    glMaterialfv
+    
+    ; Textures
+    glGenTextures
+    glBindTexture
+    glTexImage2D
+    glTexParameteri
+    glTexParameterf
+    
+    ; Buffer operations
+    glClear
+    glClearColor
+    glClearDepth
+    glFlush
+    glFinish
+    
+    ; Viewport and projection
+    glViewport
+    glOrtho
+    glFrustum
+    gluPerspective
+    
+    ; Get functions
+    glGetError
+    glGetString
+    glGetIntegerv
+    glGetFloatv
