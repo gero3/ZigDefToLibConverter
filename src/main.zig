@@ -36,18 +36,18 @@ pub fn main() !void {
     }
 
     const input_file = args[1];
-    
+
     // Parse command line arguments
     var output_file: []const u8 = undefined;
     var kill_at = false;
-    
+
     // Check for --kill-at flag in any position
     for (args[2..]) |arg| {
         if (std.mem.eql(u8, arg, "--kill-at")) {
             kill_at = true;
         }
     }
-    
+
     // Determine output file name
     output_file = blk: {
         // Look for output file (non-flag argument)
@@ -61,9 +61,9 @@ pub fn main() !void {
             break :blk try std.fmt.allocPrint(allocator, "{s}.lib", .{basename});
         }
     };
-    
-    const should_free_output = (args.len < 3 or std.mem.startsWith(u8, args[2], "--")) and 
-                               (args.len < 4 or std.mem.startsWith(u8, args[3], "--"));
+
+    const should_free_output = (args.len < 3 or std.mem.startsWith(u8, args[2], "--")) and
+        (args.len < 4 or std.mem.startsWith(u8, args[3], "--"));
     defer if (should_free_output) allocator.free(output_file);
 
     print("Converting {s} to {s}...\n", .{ input_file, output_file });
@@ -80,7 +80,7 @@ pub fn main() !void {
     const options = def2lib.ConversionOptions{
         .kill_at = kill_at,
     };
-    
+
     const lib_content = def2lib.convertDefToLib(allocator, def_content, options) catch |err| {
         print("Error converting DEF to LIB: {}\n", .{err});
         return;
@@ -93,7 +93,7 @@ pub fn main() !void {
         return;
     };
     defer file.close();
-    
+
     file.writeAll(lib_content) catch |err| {
         print("Error writing output file: {}\n", .{err});
         return;

@@ -116,30 +116,30 @@ export fn def2lib_convert_simple(
     const options = Def2LibOptions{
         .kill_at = kill_at,
     };
-    
+
     var result: Def2LibResult = undefined;
     const ret = def2lib_convert(def_content, def_size, &options, &result);
-    
+
     lib_data.* = result.data;
     lib_size.* = result.size;
-    
+
     return ret;
 }
 
 // Test exports for validation
 export fn def2lib_test_basic() c_int {
-    const test_def = 
+    const test_def =
         \\NAME TestLibrary
         \\EXPORTS
         \\    TestFunction
         \\    TestData DATA
     ;
-    
+
     const options = Def2LibOptions{ .kill_at = false };
     var result: Def2LibResult = undefined;
-    
+
     const ret = def2lib_convert(test_def.ptr, test_def.len, &options, &result);
-    
+
     if (ret == DEF2LIB_SUCCESS) {
         def2lib_free(result.data, result.size);
         return DEF2LIB_SUCCESS;

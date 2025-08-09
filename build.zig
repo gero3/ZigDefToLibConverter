@@ -37,10 +37,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(dll);
 
     // Install header file
-    const header_install = b.addInstallFile(
-        b.path("include/def2lib.h"),
-        "include/def2lib.h"
-    );
+    const header_install = b.addInstallFile(b.path("include/def2lib.h"), "include/def2lib.h");
     b.getInstallStep().dependOn(&header_install.step);
 
     // Run command
@@ -72,15 +69,15 @@ pub fn build(b: *std.Build) void {
     dll_test.addIncludePath(b.path("zig-out/include"));
     dll_test.linkLibrary(dll);
     dll_test.linkLibC();
-    
+
     const dll_test_install = b.addInstallArtifact(dll_test, .{});
-    
+
     const dll_test_step = b.step("test-dll", "Build and run DLL tests");
     dll_test_step.dependOn(&dll_test_install.step);
-    
+
     const run_dll_test = b.addRunArtifact(dll_test);
     run_dll_test.step.dependOn(&dll_test_install.step);
-    
+
     const run_dll_test_step = b.step("run-dll-test", "Run the DLL test");
     run_dll_test_step.dependOn(&run_dll_test.step);
 

@@ -6,7 +6,7 @@ const ExportType = DefParser.ExportType;
 
 const ARCHIVE_SIGNATURE = "!<arch>\n";
 
-// COFF Machine Types  
+// COFF Machine Types
 const IMAGE_FILE_MACHINE_I386: u16 = 0x014c;
 const IMAGE_FILE_MACHINE_AMD64: u16 = 0x8664;
 const IMAGE_FILE_MACHINE_UNKNOWN: u16 = 0x0;
@@ -30,15 +30,15 @@ const IMPORT_NAME_NAME_UNDECORATE: u16 = 3;
 
 // COFF structures for real import objects
 const ImportObjectHeader = packed struct {
-    sig1: u16,              // Always IMPORT_OBJECT_HDR_SIG2
-    sig2: u16,              // Always IMPORT_OBJECT_HDR_SIG2  
-    version: u16,           // Usually 0
-    machine: u16,           // Target machine type
-    time_date_stamp: u32,   // Timestamp
-    size_of_data: u32,      // Size of the data following the header
-    ordinal_hint: u16,      // Ordinal/hint value
-    type_name_type: u16,    // Combined type and name type flags
-    
+    sig1: u16, // Always IMPORT_OBJECT_HDR_SIG2
+    sig2: u16, // Always IMPORT_OBJECT_HDR_SIG2
+    version: u16, // Usually 0
+    machine: u16, // Target machine type
+    time_date_stamp: u32, // Timestamp
+    size_of_data: u32, // Size of the data following the header
+    ordinal_hint: u16, // Ordinal/hint value
+    type_name_type: u16, // Combined type and name type flags
+
     fn init(machine_type: u16, data_size: u32, ordinal: u16, import_type: u16, name_type: u16) ImportObjectHeader {
         return ImportObjectHeader{
             .sig1 = IMPORT_OBJECT_HDR_SIG2,
@@ -137,11 +137,11 @@ pub const CoffGenerator = struct {
     pub fn generate(self: *CoffGenerator, module_def: ModuleDefinition, output_path: []const u8, kill_at: bool) !void {
         const lib_content = try self.generateInMemory(module_def, kill_at);
         defer self.allocator.free(lib_content);
-        
+
         // Write the output file
         const file = try std.fs.cwd().createFile(output_path, .{});
         defer file.close();
-        
+
         try file.writeAll(lib_content);
     }
 
@@ -171,7 +171,7 @@ pub const CoffGenerator = struct {
         // Process symbol name based on kill_at flag (like LLVM code)
         var processed_name = exp.name;
         var symbol_name = exp.name;
-        
+
         if (kill_at and exp.export_type == .function) {
             // Apply the same logic as LLVM's kill_at processing
             const should_process = blk: {
@@ -180,11 +180,11 @@ pub const CoffGenerator = struct {
                 if (exp.name.len > 0 and exp.name[0] == '?') break :blk false;
                 break :blk true;
             };
-            
+
             if (should_process) {
                 // For I386, keep original name as symbol name for decoration
                 symbol_name = exp.name;
-                
+
                 // Trim decoration after @ (but keep at least one char)
                 if (std.mem.indexOf(u8, exp.name[1..], "@")) |at_pos| {
                     const trim_pos = at_pos + 1; // +1 because we searched from index 1
@@ -194,7 +194,7 @@ pub const CoffGenerator = struct {
                 }
             }
         }
-        
+
         // Handle internal name mapping (like LLVM's ExtName logic)
         if (exp.internal_name) |internal| {
             // If ExtName is set, use it as the main name and clear internal reference
@@ -209,20 +209,20 @@ pub const CoffGenerator = struct {
         // Create the import object data
         var import_data = std.ArrayList(u8).init(self.allocator);
         defer import_data.deinit();
-        
+
         // Add symbol name (null-terminated)
         try import_data.appendSlice(symbol_name);
         try import_data.append(0);
-        
+
         // Add module name (null-terminated)
         if (module_name) |mod_name| {
             try import_data.appendSlice(mod_name);
             try import_data.append(0);
         }
-        
+
         // Determine import type and name type
         const import_type = if (exp.export_type == .data) IMPORT_OBJECT_DATA else IMPORT_OBJECT_CODE;
-        
+
         // Choose name type based on symbol characteristics
         const name_type = blk: {
             if (exp.ordinal != null) break :blk IMPORT_NAME_ORDINAL;
@@ -230,19 +230,14 @@ pub const CoffGenerator = struct {
             if (!std.mem.eql(u8, import_name, symbol_name)) break :blk IMPORT_NAME_NAME_UNDECORATE;
             break :blk IMPORT_NAME_NAME;
         };
-        
+
         // Create import object header
-        const header = ImportObjectHeader.init(
-            IMAGE_FILE_MACHINE_AMD64, // Target AMD64 for now
-            @intCast(import_data.items.len),
-            @intCast(exp.ordinal orelse 0),
-            import_type,
-            name_type
-        );
-        
+        const header = ImportObjectHeader.init(IMAGE_FILE_MACHINE_AMD64, // Target AMD64 for now
+            @intCast(import_data.items.len), @intCast(exp.ordinal orelse 0), import_type, name_type);
+
         // Calculate total member size (header + data)
         const member_size = @sizeOf(ImportObjectHeader) + import_data.items.len;
-        
+
         // Create archive member header
         var arch_header = ArchiveMemberHeader{
             .name = [_]u8{' '} ** 16,
@@ -270,14 +265,14 @@ pub const CoffGenerator = struct {
         // Write archive member header
         const header_bytes = std.mem.asBytes(&arch_header);
         try content.appendSlice(header_bytes);
-        
+
         // Write import object header
         const import_header_bytes = std.mem.asBytes(&header);
         try content.appendSlice(import_header_bytes);
-        
+
         // Write import data
         try content.appendSlice(import_data.items);
-        
+
         // Pad to even boundary if needed
         if (content.items.len % 2 != 0) {
             try content.append(0);
